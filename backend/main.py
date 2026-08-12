@@ -1,12 +1,21 @@
-def print_trip_summary(destination, days, budget, travel_styles):
+def print_trip_summary(destination, country, days, budget, currency, travel_month):
     print("====================")
     print("KelanaAI")
     print("====================")
-    print(f"Destination : {destination}")
-    print(f"Days        : {days}")
-    print(f"Budget      : {budget}")
-    print(f"Travel Style: {travel_styles}")
+    print(f"Destination     : {destination}")
+    print(f"Country         : {country}")
+    print(f"Days            : {days}")
+    print(f"Budget          : {budget:g} {currency}")
+    print(f"Currency        : {currency}")
+    print(f"Travel Month    : {travel_month}")
 
-#Call it with any trip
-print_trip_summary("Japan", 5, 1500, "Family")
-print_trip_summary("Bali", 3, 800, "Backpacker")
+# Get trip information from the user
+destination = input("Destination: ")
+country = input("Country: ")
+days = int(input("Days: "))
+budget = float(input("Budget: "))
+currency = input("Currency: ")
+travel_month = input("Travel Month: ")
+
+# Print trip summary
+print_trip_summary(destination, country, days, budget, currency, travel_month)
