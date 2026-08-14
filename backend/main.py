@@ -1,56 +1,67 @@
-from services.trip_services import (calculate_daily_budget, get_trip_category,
-    get_transportation_recommendation, get_recommended_places)
+from services.trip_service import (
+    calculate_daily_budget,
+    get_trip_category,
+    get_travel_season,
+    get_recommended_places
+)
 
-def print_dastinations(destinations):
-    print("Your Destinations")
-
-    index=0
-    while index < len(destinations):
-        print(f"{index + 1}. {destinations[index]}")
-        index += 1
+def print_destinations(destinations):
+    if len(destinations) == 1:
+        print(f"Destination     : {destinations[0]}")
+    else:
+        print("Destinations    :")
+    
+    for destination in destinations:
+        print(f"- {destination}")
+    print()
 
 def print_recommended_places(destinations):
     print("Recommended Places")
-    print()
 
+    
     for destination in destinations:
         print(destination)
 
         for place in get_recommended_places(destination):
             print(f"- {place}")
-        
         print()
 
-def print_trip_summary(destinations, days, budget):
+def print_trip_summary(destinations, days, budget, month):
     daily_budget = calculate_daily_budget(budget, days)
     category = get_trip_category(budget)
-    transportation = get_transportation_recommendation(category)
-    
-    print("====================")
+    season = get_travel_season(month)
+
+    print("==================================")
     print("KelanaAI")
-    print("====================")
+    print("==================================")
     print()
-    print_dastinations(destinations)
-    print()
+    print_destinations(destinations)
     print(f"Days            : {days}")
-    print(f"Budget          : {budget} USD")
-    print(f'Category        :"{category}"')
-    print(f"Daily Budget    : {daily_budget:.0f} USD/day")
-    print(f"Recommended Transportation : {transportation}")
+    print(f"Budget          : {budget:g} USD")
+    print(f"Category        : {category}")
+    print(f"Daily Budget    : {daily_budget:g} USD/Day")
+    print(f"Travel Month    : {month}")
+    print(f"Season          : {season}")
     print()
     print_recommended_places(destinations)
 
-print_trip_summary(["Japan", "Korea"], 5, 1500)
 
+
+# Get trip information from the user
 destinations = []
 
 while True:
-    place = input("Enter a destination (or type 'selesai' to finish): ")
-    
-    #Check if the user wants to exit
-    if place.lower() == 'selesai':
-        break #This exist the loop immediately
+    destination = input("Enter a destination (or type 'selesai' to finish): ")
 
-    destinations.append(place)
-    
-print("Your full trip itinerary:", destinations)
+    if destination.lower().strip() == "selesai":
+        break
+
+    if destination.strip():
+        destinations.append(destination.strip())
+
+
+days = int(input("Days: "))
+budget = float(input("Budget: "))
+travel_month = input("Travel Month: ")
+
+print_trip_summary(destinations, days, budget, travel_month)

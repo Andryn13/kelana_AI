@@ -1,0 +1,48 @@
+def calculate_daily_budget(budget, days):
+    return budget / days
+
+
+def get_trip_category(budget):
+    if budget < 1000:
+        return "Backpacker"
+    elif budget <= 3000:
+        return "Standard"
+    else:
+        return "Luxury"
+
+
+def get_recommended_places(destination):
+    recommendations = {
+        "Japan": ["Tokyo Tower", "Shibuya", "Mount Fuji"],
+        "Bali": ["Ubud", "Kuta Beach", "Tanah Lot"],
+        "Singapore": ["Marina Bay Sands", "Gardens by the Bay", "Sentosa"]
+    }
+
+    return recommendations.get(
+        destination,
+        ["City Center", "Local Market", "Popular Landmark"]
+    )
+
+
+def get_travel_season(month):
+    months = {
+        "12": "december",
+        "dec": "december",
+        "december": "december",
+        "des": "december",
+        "desember": "december",
+        "6": "june",
+        "jun": "june",
+        "june": "june",
+        "juni": "june"
+    }
+
+    month = month.lower().strip()
+    month = months.get(month, month)
+
+    if month == "december":
+        return "Peak Season"
+    elif month == "june":
+        return "Holiday Season"
+    else:
+        return "Regular Season"
