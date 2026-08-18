@@ -1,67 +1,58 @@
+from fastapi import FastAPI
+from pydantic import BaseModel
+
 from services.trip_service import (
     calculate_daily_budget,
-    get_trip_category,
-    get_travel_season,
-    get_recommended_places
+    get_trip_category
 )
 
-def print_destinations(destinations):
-    if len(destinations) == 1:
-        print(f"Destination     : {destinations[0]}")
-    else:
-        print("Destinations    :")
-    
-    for destination in destinations:
-        print(f"- {destination}")
-    print()
-
-def print_recommended_places(destinations):
-    print("Recommended Places")
-
-    
-    for destination in destinations:
-        print(destination)
-
-        for place in get_recommended_places(destination):
-            print(f"- {place}")
-        print()
-
-def print_trip_summary(destinations, days, budget, month):
-    daily_budget = calculate_daily_budget(budget, days)
-    category = get_trip_category(budget)
-    season = get_travel_season(month)
-
-    print("==================================")
-    print("KelanaAI")
-    print("==================================")
-    print()
-    print_destinations(destinations)
-    print(f"Days            : {days}")
-    print(f"Budget          : {budget:g} USD")
-    print(f"Category        : {category}")
-    print(f"Daily Budget    : {daily_budget:g} USD/Day")
-    print(f"Travel Month    : {month}")
-    print(f"Season          : {season}")
-    print()
-    print_recommended_places(destinations)
+app = FastAPI()
 
 
+class TripRequest(BaseModel):
+    destination: str
+    days: int
+    budget: float
+    travel_style: str
 
-# Get trip information from the user
-destinations = []
+@app.get("/")
+def home():
+    return {
+        "message": "Welcome to KelanaAI"
+    }
 
-while True:
-    destination = input("Enter a destination (or type 'selesai' to finish): ")
+@app.get("/health")
+def health_check():
+    return {
+        "status": "ok"
+    }
 
-    if destination.lower().strip() == "selesai":
-        break
+@app.post("/api/v1/trips")
+def create_trip(request: TripRequest):
+    daily_budget = calculate_daily_budget(
+        request.budget,
+        request.days
+    )
 
-    if destination.strip():
-        destinations.append(destination.strip())
+    category = get_trip_category(request.budget)
 
+    transportation = {
+    "backpacker": "Bus",
+    "family": "Train",
+    "business": "Flight",
+    "luxury": "Flight"
+}
 
-days = int(input("Days: "))
-budget = float(input("Budget: "))
-travel_month = input("Travel Month: ")
+    recommended_transport = transportation.get(
+        request.travel_style.lower(),
+        "Train"
+    )
 
-print_trip_summary(destinations, days, budget, travel_month)
+    return {
+        "destination": request.destination,
+        "days": request.days,
+        "budget": request.budget,
+        "daily_budget": daily_budget,
+        "category": category,
+        "recommended_transport": recommended_transport
+    }
