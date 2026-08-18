@@ -56,3 +56,12 @@ def create_trip(request: TripRequest):
         "category": category,
         "recommended_transport": recommended_transport
     }
+
+@app.get("/api/v1/recommendations")
+def get_recommendations():
+    return ["Tokyo Tower", "Mount Fuji", "Shibuya"]
+
+
+@app.get("/api/v1/transportations")
+def get_transportations():
+    return ["Bus", "Train", "Flight"]
