@@ -23,6 +23,13 @@ def get_recommended_places(destination):
         ["City Center", "Local Market", "Popular Landmark"]
     )
 
+def get_transportation_recommendation(category):
+    if category == "Backpacker":
+        return "Bus"
+    elif category == "Standard":
+        return "Train"
+    else:
+        return "Flight"
 
 def get_travel_season(month):
     months = {
