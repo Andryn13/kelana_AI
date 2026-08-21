@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from services.trip_service import (
@@ -92,6 +92,61 @@ def get_trip(trip_id: int):
         )
 
     return trip
+
+@app.put("/api/v1/trips/{trip_id}")
+def update_trip(trip_id: int, request: TripRequest):
+    db = SessionLocal()
+
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if trip is None:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trip with id {trip_id} not found"
+        )
+
+    daily_budget = calculate_daily_budget(
+        request.budget,
+        request.days
+    )
+
+    category = get_trip_category(request.budget)
+
+    trip.destination = request.destination
+    trip.days = request.days
+    trip.budget = request.budget
+    trip.category = category
+    trip.daily_budget = daily_budget
+
+    db.commit()
+    db.refresh(trip)
+    db.close()
+
+    return trip
+
+@app.delete("/api/v1/trips/{trip_id}")
+def delete_trip(trip_id: int):
+    db = SessionLocal()
+
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if trip is None:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trip with id {trip_id} not found"
+        )
+
+    db.delete(trip)
+    db.commit()
+    db.close()
+
+    return {
+        "message": f"Trip with id {trip_id} deleted successfully"
+    }
+
+
 
 @app.get("/api/v1/recommendations")
 def get_recommendations():
