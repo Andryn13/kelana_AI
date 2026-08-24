@@ -179,7 +179,20 @@ Create a {trip.days}-day itinerary for {trip.destination}.
 Budget: USD {trip.budget}
 Travel Style: {trip.category}
 
-Provide a practical day-by-day travel recommendation.
+For each day, provide a structured daily plan with:
+
+Morning:
+- Provide 2-3 specific morning activities.
+
+Afternoon:
+- Include cultural sites to visit.
+- Include authentic local experiences.
+
+Evening:
+- Recommend suitable dinner spots.
+- Suggest entertainment or nightlife activities.
+
+Make the itinerary practical, specific, and suitable for the destination and travel style.
 """
 
     recommendation = generate_recommendation(prompt)
