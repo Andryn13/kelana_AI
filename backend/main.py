@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from services.bedrock_service import generate_recommendation
 
 from services.trip_service import (
     calculate_daily_budget,
@@ -157,3 +158,40 @@ def get_recommendations():
 def get_transportations():
     return ["Bus", "Train", "Flight"]
 
+@app.post("/api/v1/trips/{trip_id}/generate")
+def generate_trip_recommendation(trip_id: int):
+    db = SessionLocal()
+
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if trip is None:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trip with id {trip_id} not found"
+        )
+
+    prompt = f"""
+You are an experienced travel planner.
+
+Create a {trip.days}-day itinerary for {trip.destination}.
+
+Budget: USD {trip.budget}
+Travel Style: {trip.category}
+
+Provide a practical day-by-day travel recommendation.
+"""
+
+    recommendation = generate_recommendation(prompt)
+
+    trip.ai_recommendation = recommendation
+
+    db.commit()
+    db.refresh(trip)
+    db.close()
+
+    return {
+        "trip_id": trip.id,
+        "destination": trip.destination,
+        "recommendation": recommendation
+    }
