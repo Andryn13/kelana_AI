@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from services.bedrock_service import generate_recommendation
 
 from services.trip_service import (
     calculate_daily_budget,
@@ -17,6 +19,14 @@ class TripRequest(BaseModel):
     travel_style: str
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 init_db()
 
@@ -62,6 +72,7 @@ def create_trip(request: TripRequest):
     db.close()
 
     return {
+        "trip_id": trip.id,
         "destination": trip.destination,
         "days": trip.days,
         "budget": trip.budget,
@@ -157,3 +168,53 @@ def get_recommendations():
 def get_transportations():
     return ["Bus", "Train", "Flight"]
 
+@app.post("/api/v1/trips/{trip_id}/generate")
+def generate_trip_recommendation(trip_id: int):
+    db = SessionLocal()
+
+    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+
+    if trip is None:
+        db.close()
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trip with id {trip_id} not found"
+        )
+
+    prompt = f"""
+You are an experienced travel planner.
+
+Create a {trip.days}-day itinerary for {trip.destination}.
+
+Budget: USD {trip.budget}
+Travel Style: {trip.category}
+
+For each day, provide a structured daily plan with:
+
+Morning:
+- Provide 2-3 specific morning activities.
+
+Afternoon:
+- Include cultural sites to visit.
+- Include authentic local experiences.
+
+Evening:
+- Recommend suitable dinner spots.
+- Suggest entertainment or nightlife activities.
+
+Make the itinerary practical, specific, and suitable for the destination and travel style.
+"""
+
+    recommendation = generate_recommendation(prompt)
+
+    trip.ai_recommendation = recommendation
+
+    db.commit()
+    db.refresh(trip)
+    db.close()
+
+    return {
+        "trip_id": trip.id,
+        "destination": trip.destination,
+        "recommendation": recommendation
+    }
