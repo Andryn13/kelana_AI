@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
   const [destination, setDestination] = useState("");
   const [days, setDays] = useState(3);
   const [budget, setBudget] = useState(1000);
@@ -54,7 +56,7 @@ export default function Home() {
       }
 
       const result = await aiResponse.json();
-      setRecommendation(result.recommendation);
+      router.push("/trips");
     } catch (err) {
       console.error(err);
       setError(
