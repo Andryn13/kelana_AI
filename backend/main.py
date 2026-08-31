@@ -3,6 +3,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from services.bedrock_service import generate_recommendation
 
+from fastapi import Depends
+from models.trip import User
+from services.auth_service import (
+    get_current_user,
+    register,
+    login
+)
+
 from services.trip_service import (
     calculate_daily_budget,
     get_trip_category,
@@ -17,6 +25,16 @@ class TripRequest(BaseModel):
     days: int
     budget: float
     travel_style: str
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
 
 app = FastAPI()
 
@@ -43,7 +61,10 @@ def health_check():
     }
 
 @app.post("/api/v1/trips")
-def create_trip(request: TripRequest):
+def create_trip(
+    request: TripRequest,
+    user: User = Depends(get_current_user)
+):
     daily_budget = calculate_daily_budget(
         request.budget,
         request.days
@@ -62,7 +83,8 @@ def create_trip(request: TripRequest):
         budget=request.budget,
         category=category,
         travel_style=request.travel_style,
-        daily_budget=daily_budget
+        daily_budget=daily_budget,
+        user_id=user.id
     )
 
     # Save to PostgreSQL
@@ -83,10 +105,15 @@ def create_trip(request: TripRequest):
     }
 
 @app.get("/api/v1/trips")
-def list_trips():
+def list_trip(user: User = Depends(get_current_user)):
     db = SessionLocal()
-    trips = db.query(Trip).all()
+
+    trips = db.query(Trip).filter(
+        Trip.user_id == user.id
+    ).all()
+
     db.close()
+
     return trips
 
 @app.get("/api/v1/trips/{trip_id}")
@@ -220,3 +247,26 @@ Make the itinerary practical, specific, and suitable for the destination and tra
         "destination": trip.destination,
         "recommendation": recommendation
     }
+
+@app.post("/api/v1/auth/register")
+def register_user(request: RegisterRequest):
+    user = register(
+        request.name,
+        request.email,
+        request.password
+    )
+
+    return {
+        "message": "User registered successfully",
+        "user_id": user.id,
+        "name": user.name,
+        "email": user.email
+    }
+
+
+@app.post("/api/v1/auth/login")
+def login_user(request: LoginRequest):
+    return login(
+        request.email,
+        request.password
+    )
