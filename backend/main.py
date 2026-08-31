@@ -1,7 +1,15 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
 from services.bedrock_service import generate_recommendation
+
+from models.trip import User, Trip
+from services.auth_service import (
+    get_current_user,
+    register,
+    login
+)
 
 from services.trip_service import (
     calculate_daily_budget,
@@ -10,7 +18,7 @@ from services.trip_service import (
 )
 
 from database import SessionLocal, init_db
-from models.trip import Trip #noqa: F401 -registers Trips with Base.metadata
+
 
 class TripRequest(BaseModel):
     destination: str
@@ -18,7 +26,20 @@ class TripRequest(BaseModel):
     budget: float
     travel_style: str
 
+
+class RegisterRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
 app = FastAPI()
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +49,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 init_db()
+
 
 @app.get("/")
 def home():
@@ -36,37 +59,76 @@ def home():
         "message": "Welcome to KelanaAI"
     }
 
+
 @app.get("/health")
 def health_check():
     return {
         "status": "ok"
     }
 
+
+# =========================
+# AUTH
+# =========================
+
+@app.post("/api/v1/auth/register")
+def register_user(request: RegisterRequest):
+    user = register(
+        request.name,
+        request.email,
+        request.password
+    )
+
+    return {
+        "message": "User registered successfully",
+        "user_id": user.id,
+        "name": user.name,
+        "email": user.email
+    }
+
+
+@app.post("/api/v1/auth/login")
+def login_user(request: LoginRequest):
+    return login(
+        request.email,
+        request.password
+    )
+
+
+# =========================
+# TRIPS
+# =========================
+
 @app.post("/api/v1/trips")
-def create_trip(request: TripRequest):
+def create_trip(
+    request: TripRequest,
+    user: User = Depends(get_current_user)
+):
     daily_budget = calculate_daily_budget(
         request.budget,
         request.days
     )
 
-    category = get_trip_category(request.budget)
+    category = get_trip_category(
+        request.budget
+    )
 
     recommended_transport = get_transportation_recommendation(
         category
     )
 
-    # Create a Trip ORM object
     trip = Trip(
         destination=request.destination,
         days=request.days,
         budget=request.budget,
         category=category,
         travel_style=request.travel_style,
-        daily_budget=daily_budget
+        daily_budget=daily_budget,
+        user_id=user.id
     )
 
-    # Save to PostgreSQL
     db = SessionLocal()
+
     db.add(trip)
     db.commit()
     db.refresh(trip)
@@ -82,18 +144,33 @@ def create_trip(request: TripRequest):
         "recommended_transport": recommended_transport
     }
 
+
 @app.get("/api/v1/trips")
-def list_trips():
+def list_trip(
+    user: User = Depends(get_current_user)
+):
     db = SessionLocal()
-    trips = db.query(Trip).all()
+
+    trips = db.query(Trip).filter(
+        Trip.user_id == user.id
+    ).all()
+
     db.close()
+
     return trips
 
+
 @app.get("/api/v1/trips/{trip_id}")
-def get_trip(trip_id: int):
+def get_trip(
+    trip_id: int,
+    user: User = Depends(get_current_user)
+):
     db = SessionLocal()
 
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id,
+        Trip.user_id == user.id
+    ).first()
 
     db.close()
 
@@ -105,11 +182,19 @@ def get_trip(trip_id: int):
 
     return trip
 
+
 @app.put("/api/v1/trips/{trip_id}")
-def update_trip(trip_id: int, request: TripRequest):
+def update_trip(
+    trip_id: int,
+    request: TripRequest,
+    user: User = Depends(get_current_user)
+):
     db = SessionLocal()
 
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id,
+        Trip.user_id == user.id
+    ).first()
 
     if trip is None:
         db.close()
@@ -123,7 +208,9 @@ def update_trip(trip_id: int, request: TripRequest):
         request.days
     )
 
-    category = get_trip_category(request.budget)
+    category = get_trip_category(
+        request.budget
+    )
 
     trip.destination = request.destination
     trip.days = request.days
@@ -131,18 +218,25 @@ def update_trip(trip_id: int, request: TripRequest):
     trip.category = category
     trip.travel_style = request.travel_style
     trip.daily_budget = daily_budget
-    
+
     db.commit()
     db.refresh(trip)
     db.close()
 
     return trip
 
+
 @app.delete("/api/v1/trips/{trip_id}")
-def delete_trip(trip_id: int):
+def delete_trip(
+    trip_id: int,
+    user: User = Depends(get_current_user)
+):
     db = SessionLocal()
 
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id,
+        Trip.user_id == user.id
+    ).first()
 
     if trip is None:
         db.close()
@@ -160,21 +254,39 @@ def delete_trip(trip_id: int):
     }
 
 
+# =========================
+# RECOMMENDATIONS
+# =========================
 
 @app.get("/api/v1/recommendations")
 def get_recommendations():
-    return ["Tokyo Tower", "Mount Fuji", "Shibuya"]
+    return [
+        "Tokyo Tower",
+        "Mount Fuji",
+        "Shibuya"
+    ]
 
 
 @app.get("/api/v1/transportations")
 def get_transportations():
-    return ["Bus", "Train", "Flight"]
+    return [
+        "Bus",
+        "Train",
+        "Flight"
+    ]
+
 
 @app.post("/api/v1/trips/{trip_id}/generate")
-def generate_trip_recommendation(trip_id: int):
+def generate_trip_recommendation(
+    trip_id: int,
+    user: User = Depends(get_current_user)
+):
     db = SessionLocal()
 
-    trip = db.query(Trip).filter(Trip.id == trip_id).first()
+    trip = db.query(Trip).filter(
+        Trip.id == trip_id,
+        Trip.user_id == user.id
+    ).first()
 
     if trip is None:
         db.close()
