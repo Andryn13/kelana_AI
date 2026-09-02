@@ -1,6 +1,7 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Form
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from services.kb_service import ask_knowledge_base
 
 from services.bedrock_service import generate_recommendation
 
@@ -19,6 +20,8 @@ from services.trip_service import (
 
 from database import SessionLocal, init_db
 
+class QuestionRequest(BaseModel):
+    question: str
 
 class TripRequest(BaseModel):
     destination: str
@@ -331,4 +334,15 @@ Make the itinerary practical, specific, and suitable for the destination and tra
         "trip_id": trip.id,
         "destination": trip.destination,
         "recommendation": recommendation
+    }
+
+@app.post("/api/v1/ask")
+def ask_endpoint(request: QuestionRequest):
+    answer = ask_knowledge_base(
+        request.question
+    )
+
+    return {
+        "question": request.question,
+        "answer": answer
     }
