@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { getTrip } from "../../../services/tripService";
 
 type Trip = {
@@ -10,8 +11,9 @@ type Trip = {
   days: number;
   budget: number;
   category: string;
+  travel_style: string;
   daily_budget: number;
-  ai_recommendation?: string;
+  ai_recommendation: string | null;
 };
 
 export default function TripDetailPage({
@@ -19,9 +21,16 @@ export default function TripDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const router = useRouter();
+
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    router.push("/login");
+  }
 
   useEffect(() => {
     async function loadTrip() {
@@ -54,16 +63,25 @@ export default function TripDetailPage({
     return (
       <main className="min-h-screen bg-zinc-50 px-6 py-12">
         <div className="mx-auto max-w-4xl">
-          <div className="rounded-2xl bg-red-50 p-6 text-red-700">
-            {error || "Trip not found."}
+          <div className="flex items-center justify-between">
+            <Link
+              href="/trips"
+              className="font-medium text-zinc-600 hover:text-zinc-900"
+            >
+              ← Back to Trip History
+            </Link>
+
+            <button
+              onClick={handleLogout}
+              className="rounded-lg border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-900 hover:bg-zinc-100"
+            >
+              Logout
+            </button>
           </div>
 
-          <Link
-            href="/trips"
-            className="mt-6 inline-block font-medium underline"
-          >
-            ← Back to Trip History
-          </Link>
+          <div className="mt-6 rounded-2xl bg-red-50 p-6 text-red-700">
+            {error || "Trip not found."}
+          </div>
         </div>
       </main>
     );
@@ -72,12 +90,21 @@ export default function TripDetailPage({
   return (
     <main className="min-h-screen bg-zinc-50 px-6 py-12 text-zinc-900">
       <div className="mx-auto max-w-4xl">
-        <Link
-          href="/trips"
-          className="mb-6 inline-block font-medium text-zinc-600 hover:text-zinc-900"
-        >
-          ← Back to Trip History
-        </Link>
+        <div className="mb-6 flex items-center justify-between">
+          <Link
+            href="/trips"
+            className="font-medium text-zinc-600 hover:text-zinc-900"
+          >
+            ← Back to Trip History
+          </Link>
+
+          <button
+            onClick={handleLogout}
+            className="rounded-lg border border-zinc-300 bg-white px-5 py-3 font-semibold text-zinc-900 hover:bg-zinc-100"
+          >
+            Logout
+          </button>
+        </div>
 
         <section className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
           <h1 className="text-4xl font-bold">{trip.destination}</h1>
@@ -100,7 +127,7 @@ export default function TripDetailPage({
             <div className="rounded-xl bg-zinc-50 p-4">
               <p className="text-sm text-zinc-500">Travel Style</p>
               <p className="mt-1 text-lg font-semibold capitalize">
-                {trip.category}
+                {trip.travel_style}
               </p>
             </div>
           </div>

@@ -10,11 +10,17 @@ export async function getTrips() {
   return response.json();
 }
 
-export async function getTrip(id: number) {
-  const response = await fetch(`${API_URL}/trips/${id}`);
+export async function getTrip() {
+  const token = localStorage.getItem("token");
+
+  const response = await fetch(`${API_URL}/trips`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch trip");
+    throw new Error("Failed to fetch trips");
   }
 
   return response.json();

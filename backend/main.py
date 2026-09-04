@@ -3,6 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from services.kb_service import ask_knowledge_base
 
+from services.conversation_service import (
+    create_conversation,
+    list_conversations,
+    send_message,
+    get_messages
+)
+
+from models.conversation import Conversation, Message
+
 from services.bedrock_service import generate_recommendation
 
 from models.trip import User, Trip
@@ -39,6 +48,9 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class MessageRequest(BaseModel):
+    content: str
 
 
 app = FastAPI()
@@ -346,3 +358,40 @@ def ask_endpoint(request: QuestionRequest):
         "question": request.question,
         "answer": answer
     }
+
+@app.post("/api/v1/conversations")
+def create_conversation_endpoint(
+    current_user=Depends(get_current_user)
+):
+    return create_conversation(current_user.id)
+
+
+@app.get("/api/v1/conversations")
+def list_conversations_endpoint(
+    current_user=Depends(get_current_user)
+):
+    return list_conversations(current_user.id)
+
+
+@app.get("/api/v1/conversations/{conversation_id}/messages")
+def get_messages_endpoint(
+    conversation_id: int,
+    current_user=Depends(get_current_user)
+):
+    return get_messages(
+        conversation_id,
+        current_user.id
+    )
+
+
+@app.post("/api/v1/conversations/{conversation_id}/messages")
+def send_message_endpoint(
+    conversation_id: int,
+    request: MessageRequest,
+    current_user=Depends(get_current_user)
+):
+    return send_message(
+        conversation_id,
+        current_user.id,
+        request.content
+    )

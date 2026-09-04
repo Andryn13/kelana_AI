@@ -1,0 +1,5 @@
+[33mcab6a67[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32msession-8[m[33m, [m[1;31morigin/session-8[m[33m)[m Add JWT Authentication
+[33m2d787db[m[33m ([m[1;33mtag: [m[1;33msession-7[m[33m, [m[1;31morigin/session-7[m[33m, [m[1;32msession-7[m[33m)[m Create trip dashboard and enhance trip card components
+[33m893e8fe[m Create Trip Dashboard
+[33m16977f6[m[33m ([m[1;31morigin/session-6[m[33m, [m[1;32msession-6[m[33m)[m Improve the homepage styling and layout
+[33m69b0cde[m Create Next.js frontend
