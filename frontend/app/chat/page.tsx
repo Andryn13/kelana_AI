@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   createConversation,
@@ -25,11 +25,25 @@ type Message = {
 export default function ChatPage() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationId, setConversationId] = useState<number | null>(null);
+  const [conversationTitle, setConversationTitle] =
+    useState("New Conversation");
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(true);
 
+  // Reference untuk auto-scroll
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll ke pesan terbaru
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
+
+  // Load conversation list saat halaman dibuka
   useEffect(() => {
     loadConversations();
   }, []);
@@ -45,11 +59,13 @@ export default function ChatPage() {
     }
   }
 
+  // Membuat conversation baru
   async function startNewConversation() {
     try {
       const data = await createConversation();
 
       setConversationId(data.conversation_id);
+      setConversationTitle("New Conversation");
       setMessages([]);
 
       await loadConversations();
@@ -58,9 +74,18 @@ export default function ChatPage() {
     }
   }
 
+  // Membuka conversation lama
   async function openConversation(id: number) {
     try {
       setConversationId(id);
+
+      const selectedConversation = conversations.find(
+        (conversation) => conversation.id === id
+      );
+
+      if (selectedConversation) {
+        setConversationTitle(selectedConversation.title);
+      }
 
       const data = await getMessages(id);
 
@@ -70,6 +95,7 @@ export default function ChatPage() {
     }
   }
 
+  // Mengirim pesan
   async function handleSend() {
     if (!input.trim() || loading) {
       return;
@@ -80,6 +106,7 @@ export default function ChatPage() {
     try {
       setLoading(true);
 
+      // Kalau belum ada conversation, buat dulu
       if (!activeConversationId) {
         const newConversation = await createConversation();
 
@@ -87,6 +114,7 @@ export default function ChatPage() {
           newConversation.conversation_id;
 
         setConversationId(activeConversationId);
+        setConversationTitle("New Conversation");
 
         await loadConversations();
       }
@@ -95,6 +123,7 @@ export default function ChatPage() {
 
       setInput("");
 
+      // Tampilkan pesan user langsung di UI
       const temporaryUserMessage: Message = {
         id: Date.now(),
         role: "user",
@@ -107,11 +136,13 @@ export default function ChatPage() {
         temporaryUserMessage,
       ]);
 
+      // Kirim ke backend
       const response = await sendMessage(
         activeConversationId,
         userText
       );
 
+      // Tampilkan jawaban AI
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
@@ -124,6 +155,7 @@ export default function ChatPage() {
         assistantMessage,
       ]);
 
+      // Refresh daftar conversation
       await loadConversations();
     } catch (error) {
       console.error(error);
@@ -140,11 +172,22 @@ export default function ChatPage() {
     }
   }
 
+  // Format timestamp setiap message
+  function formatTimestamp(timestamp: string) {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
   return (
     <main className="min-h-screen bg-slate-100 p-6">
       <div className="mx-auto flex h-[85vh] max-w-6xl overflow-hidden rounded-2xl bg-white shadow-lg">
 
-        {/* Sidebar */}
+        {/* ==================== */}
+        {/* Conversation Sidebar */}
+        {/* ==================== */}
+
         <aside className="flex w-72 flex-col border-r bg-slate-50">
 
           <div className="flex items-center justify-between border-b p-4">
@@ -197,20 +240,27 @@ export default function ChatPage() {
           </div>
         </aside>
 
-        {/* Chat */}
+        {/* ==================== */}
+        {/* Chat Area */}
+        {/* ==================== */}
+
         <section className="flex flex-1 flex-col">
 
+          {/* Conversation Title */}
           <header className="border-b p-4">
             <h2 className="font-semibold">
-              KelanaAI Chat
+              {conversationTitle}
             </h2>
 
             <p className="text-sm text-slate-500">
-              Your conversational travel assistant
+              KelanaAI Travel Assistant
             </p>
           </header>
 
+          {/* ==================== */}
           {/* Messages */}
+          {/* ==================== */}
+
           <div className="flex-1 space-y-4 overflow-y-auto p-6">
 
             {messages.length === 0 ? (
@@ -242,24 +292,47 @@ export default function ChatPage() {
                         : "bg-slate-100 text-slate-900"
                     }`}
                   >
+                    {/* Message content */}
                     <p className="whitespace-pre-wrap text-sm">
                       {message.content}
+                    </p>
+
+                    {/* Timestamp */}
+                    <p
+                      className={`mt-2 text-right text-xs ${
+                        message.role === "user"
+                          ? "text-blue-100"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {formatTimestamp(
+                        message.created_at
+                      )}
                     </p>
                   </div>
                 </div>
               ))
             )}
 
+            {/* Typing Indicator */}
             {loading && (
               <div className="flex justify-start">
                 <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">
-                  KelanaAI is thinking...
+                  <span className="animate-pulse">
+                    KelanaAI is typing...
+                  </span>
                 </div>
               </div>
             )}
+
+            {/* Auto-scroll target */}
+            <div ref={messagesEndRef} />
           </div>
 
+          {/* ==================== */}
           {/* Input */}
+          {/* ==================== */}
+
           <div className="border-t p-4">
             <div className="flex gap-3">
 
