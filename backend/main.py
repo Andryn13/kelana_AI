@@ -233,6 +233,7 @@ def update_trip(
     trip.category = category
     trip.travel_style = request.travel_style
     trip.daily_budget = daily_budget
+    trip.ai_recommendation = None
 
     db.commit()
     db.refresh(trip)

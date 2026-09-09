@@ -1,24 +1,33 @@
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import sessionmaker, declarative_base, Session
 import os
 
-# load .env so os.getenv() can read it
+# Load .env so os.getenv() can read it
 load_dotenv()
 
-#connection string from .env - never hardcode secrets
-DATABASE_URL: str | None = os.getenv("DATABASE_URL")
+# Connection string from .env - never hardcode secrets
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-#engine = the connection pool
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set in .env")
+
+# Engine = the connection pool
 engine: Engine = create_engine(DATABASE_URL)
 
-#SessionLocal = a factory forr DB sessions
-SessionLocal: sessionmaker[Session] = sessionmaker(bind=engine, autoflush=False)
+# SessionLocal = a factory for DB sessions
+SessionLocal = sessionmaker(
+    bind=engine,
+    autoflush=False,
+    autocommit=False
+)
 
-#Base = all ORM models inherit from this
+# Base = all ORM models inherit from this
 Base = declarative_base()
 
-#create all tables
+
+# Create all tables
 def init_db() -> None:
     """Create all SQLAlchemy tables for the configured database."""
     Base.metadata.create_all(bind=engine)

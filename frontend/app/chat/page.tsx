@@ -33,17 +33,14 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [loadingConversations, setLoadingConversations] = useState(true);
 
-  // Reference untuk auto-scroll
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // Auto-scroll ke pesan terbaru
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
       behavior: "smooth",
     });
   }, [messages, loading]);
 
-  // Load conversation list saat halaman dibuka
   useEffect(() => {
     loadConversations();
   }, []);
@@ -59,7 +56,6 @@ export default function ChatPage() {
     }
   }
 
-  // Membuat conversation baru
   async function startNewConversation() {
     try {
       const data = await createConversation();
@@ -74,7 +70,6 @@ export default function ChatPage() {
     }
   }
 
-  // Membuka conversation lama
   async function openConversation(id: number) {
     try {
       setConversationId(id);
@@ -95,7 +90,6 @@ export default function ChatPage() {
     }
   }
 
-  // Mengirim pesan
   async function handleSend() {
     if (!input.trim() || loading) {
       return;
@@ -106,7 +100,6 @@ export default function ChatPage() {
     try {
       setLoading(true);
 
-      // Kalau belum ada conversation, buat dulu
       if (!activeConversationId) {
         const newConversation = await createConversation();
 
@@ -123,7 +116,6 @@ export default function ChatPage() {
 
       setInput("");
 
-      // Tampilkan pesan user langsung di UI
       const temporaryUserMessage: Message = {
         id: Date.now(),
         role: "user",
@@ -136,13 +128,11 @@ export default function ChatPage() {
         temporaryUserMessage,
       ]);
 
-      // Kirim ke backend
       const response = await sendMessage(
         activeConversationId,
         userText
       );
 
-      // Tampilkan jawaban AI
       const assistantMessage: Message = {
         id: Date.now() + 1,
         role: "assistant",
@@ -155,7 +145,6 @@ export default function ChatPage() {
         assistantMessage,
       ]);
 
-      // Refresh daftar conversation
       await loadConversations();
     } catch (error) {
       console.error(error);
@@ -172,7 +161,6 @@ export default function ChatPage() {
     }
   }
 
-  // Format timestamp setiap message
   function formatTimestamp(timestamp: string) {
     return new Date(timestamp).toLocaleTimeString([], {
       hour: "2-digit",
@@ -188,10 +176,10 @@ export default function ChatPage() {
         {/* Conversation Sidebar */}
         {/* ==================== */}
 
-        <aside className="flex w-72 flex-col border-r bg-slate-50">
+        <aside className="flex w-72 flex-col border-r border-slate-200 bg-slate-50">
 
-          <div className="flex items-center justify-between border-b p-4">
-            <h1 className="font-semibold">
+          <div className="flex items-center justify-between border-b border-slate-200 p-4">
+            <h1 className="font-semibold text-slate-900">
               Conversations
             </h1>
 
@@ -205,11 +193,11 @@ export default function ChatPage() {
 
           <div className="flex-1 overflow-y-auto">
             {loadingConversations ? (
-              <p className="p-4 text-sm text-slate-500">
+              <p className="p-4 text-sm text-slate-600">
                 Loading...
               </p>
             ) : conversations.length === 0 ? (
-              <p className="p-4 text-sm text-slate-500">
+              <p className="p-4 text-sm text-slate-600">
                 No conversations yet.
               </p>
             ) : (
@@ -219,17 +207,17 @@ export default function ChatPage() {
                   onClick={() =>
                     openConversation(conversation.id)
                   }
-                  className={`w-full border-b px-4 py-3 text-left hover:bg-slate-100 ${
+                  className={`w-full border-b border-slate-200 px-4 py-3 text-left hover:bg-slate-100 ${
                     conversationId === conversation.id
                       ? "bg-slate-200"
                       : ""
                   }`}
                 >
-                  <p className="truncate text-sm font-medium">
+                  <p className="truncate text-sm font-medium text-slate-900">
                     {conversation.title}
                   </p>
 
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-slate-600">
                     {new Date(
                       conversation.created_at
                     ).toLocaleString()}
@@ -246,13 +234,12 @@ export default function ChatPage() {
 
         <section className="flex flex-1 flex-col">
 
-          {/* Conversation Title */}
-          <header className="border-b p-4">
-            <h2 className="font-semibold">
+          <header className="border-b border-slate-200 p-4">
+            <h2 className="font-semibold text-slate-900">
               {conversationTitle}
             </h2>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               KelanaAI Travel Assistant
             </p>
           </header>
@@ -266,11 +253,11 @@ export default function ChatPage() {
             {messages.length === 0 ? (
               <div className="flex h-full items-center justify-center">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold">
+                  <h3 className="text-xl font-semibold text-slate-900">
                     Start a conversation
                   </h3>
 
-                  <p className="mt-2 text-sm text-slate-500">
+                  <p className="mt-2 text-sm text-slate-600">
                     Ask KelanaAI about your next adventure.
                   </p>
                 </div>
@@ -292,17 +279,15 @@ export default function ChatPage() {
                         : "bg-slate-100 text-slate-900"
                     }`}
                   >
-                    {/* Message content */}
                     <p className="whitespace-pre-wrap text-sm">
                       {message.content}
                     </p>
 
-                    {/* Timestamp */}
                     <p
                       className={`mt-2 text-right text-xs ${
                         message.role === "user"
                           ? "text-blue-100"
-                          : "text-slate-400"
+                          : "text-slate-500"
                       }`}
                     >
                       {formatTimestamp(
@@ -314,10 +299,9 @@ export default function ChatPage() {
               ))
             )}
 
-            {/* Typing Indicator */}
             {loading && (
               <div className="flex justify-start">
-                <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-500">
+                <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-600">
                   <span className="animate-pulse">
                     KelanaAI is typing...
                   </span>
@@ -325,7 +309,6 @@ export default function ChatPage() {
               </div>
             )}
 
-            {/* Auto-scroll target */}
             <div ref={messagesEndRef} />
           </div>
 
@@ -333,7 +316,7 @@ export default function ChatPage() {
           {/* Input */}
           {/* ==================== */}
 
-          <div className="border-t p-4">
+          <div className="border-t border-slate-200 p-4">
             <div className="flex gap-3">
 
               <input
@@ -344,7 +327,7 @@ export default function ChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Type a message..."
                 disabled={loading}
-                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500"
+                className="flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-500 outline-none focus:border-blue-500"
               />
 
               <button

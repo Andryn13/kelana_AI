@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  createTrip,
+  generateTrip as generateTripRecommendation,
+} from "@/services/tripService";
 
 export default function Home() {
   const router = useRouter();
@@ -20,43 +24,18 @@ export default function Home() {
     setRecommendation("");
 
     try {
-      const tripResponse = await fetch(
-        "http://127.0.0.1:8000/api/v1/trips",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            destination,
-            days,
-            budget,
-            travel_style: travelStyle,
-          }),
-        }
-      );
-
-      if (!tripResponse.ok) {
-        throw new Error("Failed to create trip");
-      }
-
-      const trip = await tripResponse.json();
+      const trip = await createTrip({
+        destination,
+        days,
+        budget,
+        travel_style: travelStyle,
+      });
 
       const tripId = trip.trip_id ?? trip.id;
 
-      const aiResponse = await fetch(
-        `http://127.0.0.1:8000/api/v1/trips/${tripId}/generate`,
-        {
-          method: "POST",
-        }
-      );
+      await generateTripRecommendation(tripId);
 
-      if (!aiResponse.ok) {
-        throw new Error("Failed to generate AI recommendation");
-      }
-
-      const result = await aiResponse.json();
-      router.push("/trips");
+      router.push(`/trips/${tripId}`);
     } catch (err) {
       console.error(err);
       setError(

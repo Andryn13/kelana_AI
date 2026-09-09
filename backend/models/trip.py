@@ -21,6 +21,7 @@ class Trip(Base):
     category = Column(String, nullable=False)
     travel_style = Column(String, nullable=False)
     daily_budget = Column(Float, nullable=False)
+    ai_recommendation = Column(String, nullable=True)
 
     user_id = Column(
         Integer,
