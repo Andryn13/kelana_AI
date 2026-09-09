@@ -128,6 +128,10 @@ export default function ChatPage() {
         temporaryUserMessage,
       ]);
 
+      if (activeConversationId === null) {
+        return;
+        }
+
       const response = await sendMessage(
         activeConversationId,
         userText
