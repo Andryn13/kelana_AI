@@ -20,30 +20,33 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await fetch(
-        "http://127.0.0.1:8000/api/v1/auth/register",
+    const API_URL =
+        process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
+
+    const response = await fetch(
+        `${API_URL}/auth/register`,
         {
-          method: "POST",
-          headers: {
+        method: "POST",
+        headers: {
             "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        },
+        body: JSON.stringify({
             name,
             email,
             password,
-          }),
+        }),
         }
-      );
+    );
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (!response.ok) {
+    if (!response.ok) {
         throw new Error(
-          data.detail || "Registration failed"
+        data.detail || "Registration failed"
         );
-      }
+    }
 
-      router.push("/login");
+    router.push("/login");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
