@@ -30,23 +30,7 @@ function getDestinationFlag(destination: string) {
   return "🌍";
 }
 
-function getCategoryStyle(category: string) {
-  const value = category.toLowerCase();
-
-  if (value === "backpacker") {
-    return "bg-green-100 text-green-700";
-  }
-
-  if (value === "luxury") {
-    return "bg-purple-100 text-purple-700";
-  }
-
-  return "bg-blue-100 text-blue-700";
-}
-
 export default function TripCard({ trip }: TripCardProps) {
-  const travelStyle = trip.travel_style || "Solo";
-
   return (
     <div className="rounded-2xl bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
@@ -70,17 +54,11 @@ export default function TripCard({ trip }: TripCardProps) {
               USD {trip.budget.toLocaleString("en-US")}
             </span>
 
-            <span
-              className={`rounded-full px-3 py-1 font-medium capitalize ${getCategoryStyle(
-                trip.category
-              )}`}
-            >
-              {trip.category}
-            </span>
-
-            <span className="rounded-full bg-orange-100 px-3 py-1 font-medium capitalize text-orange-700">
-              {travelStyle}
-            </span>
+            {trip.travel_style && (
+              <span className="rounded-full bg-orange-100 px-3 py-1 font-medium capitalize text-orange-700">
+                {trip.travel_style}
+              </span>
+            )}
           </div>
         </div>
 

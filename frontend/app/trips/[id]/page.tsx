@@ -21,6 +21,88 @@ type Trip = {
   ai_recommendation: string | null;
 };
 
+function renderInlineMarkdown(text: string) {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={index}>
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
+
+function renderItinerary(text: string) {
+  const lines = text.split("\n");
+
+  return (
+    <div className="space-y-4">
+      {lines.map((line, index) => {
+        const trimmedLine = line.trim();
+
+        if (!trimmedLine) {
+          return <div key={index} className="h-1" />;
+        }
+
+        const cleanLine = trimmedLine.replace(/\*\*/g, "");
+
+        if (
+          /^Day \d+:/i.test(cleanLine) ||
+          /^Day \d+\s*$/i.test(cleanLine)
+        ) {
+          return (
+            <h3
+              key={index}
+              className="pt-4 text-xl font-bold text-zinc-900"
+            >
+              {renderInlineMarkdown(trimmedLine)}
+            </h3>
+          );
+        }
+
+        if (
+          /^(Morning|Afternoon|Evening|Night):?$/i.test(cleanLine)
+        ) {
+          return (
+            <h4
+              key={index}
+              className="pt-2 text-lg font-semibold text-zinc-800"
+            >
+              {renderInlineMarkdown(trimmedLine)}
+            </h4>
+          );
+        }
+
+        if (trimmedLine.startsWith("- ")) {
+          return (
+            <div
+              key={index}
+              className="flex gap-3 pl-2 leading-7 text-zinc-700"
+            >
+              <span className="shrink-0">•</span>
+              <p>{renderInlineMarkdown(trimmedLine.slice(2))}</p>
+            </div>
+          );
+        }
+
+        return (
+          <p
+            key={index}
+            className="leading-7 text-zinc-700"
+          >
+            {renderInlineMarkdown(trimmedLine)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function TripDetailPage({
   params,
 }: {
@@ -177,7 +259,6 @@ export default function TripDetailPage({
             >
               ← Back to Trip History
             </Link>
-
           </div>
 
           <div className="mt-6 rounded-2xl bg-red-50 p-6 text-red-700">
@@ -256,6 +337,7 @@ export default function TripDetailPage({
                 <label className="mb-2 block text-sm font-medium text-zinc-700">
                   Destination
                 </label>
+
                 <input
                   type="text"
                   value={editDestination}
@@ -269,6 +351,7 @@ export default function TripDetailPage({
                   <label className="mb-2 block text-sm font-medium text-zinc-700">
                     Days
                   </label>
+
                   <input
                     type="number"
                     min="1"
@@ -282,6 +365,7 @@ export default function TripDetailPage({
                   <label className="mb-2 block text-sm font-medium text-zinc-700">
                     Budget
                   </label>
+
                   <input
                     type="number"
                     min="1"
@@ -296,13 +380,15 @@ export default function TripDetailPage({
                 <label className="mb-2 block text-sm font-medium text-zinc-700">
                   Travel Style
                 </label>
+
                 <select
                   value={editTravelStyle}
                   onChange={(e) => setEditTravelStyle(e.target.value)}
                   className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 outline-none focus:border-blue-500"
                 >
                   <option value="backpacker">Backpacker</option>
-                  <option value="standard">Standard</option>
+                  <option value="family">Family</option>
+                  <option value="business">Business</option>
                   <option value="luxury">Luxury</option>
                 </select>
               </div>
@@ -341,8 +427,8 @@ export default function TripDetailPage({
           <h2 className="text-2xl font-semibold">AI Itinerary</h2>
 
           {trip.ai_recommendation ? (
-            <div className="mt-6 whitespace-pre-wrap leading-7 text-zinc-700">
-              {trip.ai_recommendation}
+            <div className="mt-6">
+              {renderItinerary(trip.ai_recommendation)}
             </div>
           ) : (
             <div className="mt-4">

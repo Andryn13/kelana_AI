@@ -58,10 +58,10 @@ export default function Home() {
           }}
         />
 
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/45 to-black/20" />
 
         <div className="relative mx-auto flex h-full max-w-6xl items-center px-6">
-          <div className="max-w-2xl text-white">
+          <div className="max-w-2xl rounded-2xl bg-black/40 p-6 text-white backdrop-blur-[2px]">
             <p className="mb-3 text-sm font-semibold uppercase tracking-[0.25em] text-sky-200">
               Explore the world
             </p>
@@ -79,7 +79,7 @@ export default function Home() {
       </section>
 
       {/* Planning Form */}
-      <section className="mx-auto -mt-16 max-w-5xl px-6 pb-16">
+      <section className="relative z-10 mx-auto -mt-16 max-w-5xl px-6 pb-16">
         <div className="rounded-3xl bg-white p-6 shadow-xl sm:p-8">
           <div className="mb-8">
             <h2 className="text-2xl font-bold sm:text-3xl">

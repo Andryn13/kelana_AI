@@ -20,33 +20,33 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-    const API_URL =
+      const API_URL =
         process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api/v1";
 
-    const response = await fetch(
+      const response = await fetch(
         `${API_URL}/auth/register`,
         {
-        method: "POST",
-        headers: {
+          method: "POST",
+          headers: {
             "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+          },
+          body: JSON.stringify({
             name,
             email,
             password,
-        }),
+          }),
         }
-    );
+      );
 
-    const data = await response.json();
+      const data = await response.json();
 
-    if (!response.ok) {
+      if (!response.ok) {
         throw new Error(
-        data.detail || "Registration failed"
+          data.detail || "Registration failed"
         );
-    }
+      }
 
-    router.push("/login");
+      router.push("/login");
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
@@ -59,10 +59,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-6">
-      <div className="w-full max-w-md">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 px-6">
+      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-lg">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-3xl font-bold text-gray-900">
             Create your account
           </h1>
 
@@ -78,7 +78,7 @@ export default function RegisterPage() {
           <div>
             <label
               htmlFor="name"
-              className="block mb-2 font-medium"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
               Name
             </label>
@@ -90,14 +90,14 @@ export default function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="Your name"
               required
-              className="w-full rounded-lg border px-4 py-3"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <label
               htmlFor="email"
-              className="block mb-2 font-medium"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
               Email
             </label>
@@ -109,14 +109,14 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               required
-              className="w-full rounded-lg border px-4 py-3"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block mb-2 font-medium"
+              className="mb-2 block text-sm font-medium text-gray-700"
             >
               Password
             </label>
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
               required
-              className="w-full rounded-lg border px-4 py-3"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
@@ -141,7 +141,7 @@ export default function RegisterPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-black px-4 py-3 text-white font-medium disabled:opacity-50"
+            className="w-full rounded-lg bg-blue-600 px-4 py-3 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? "Creating account..." : "Create account"}
           </button>

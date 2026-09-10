@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const router = useRouter();
+
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+    useEffect(() => {
+    setIsLoggedIn(!!localStorage.getItem("token"));
+    }, []);
 
   function handleLogout() {
     localStorage.removeItem("token");
@@ -49,12 +56,30 @@ export default function Navbar() {
             >
             About
             </Link>
-          <button
-            onClick={handleLogout}
-            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 font-semibold text-zinc-900 hover:bg-zinc-100"
-          >
-            Logout
-          </button>
+          {isLoggedIn ? (
+            <button
+                onClick={handleLogout}
+                className="rounded-lg border border-zinc-300 bg-white px-4 py-2 font-semibold text-zinc-900 hover:bg-zinc-100"
+            >
+                Logout
+            </button>
+            ) : (
+            <div className="flex items-center gap-3">
+                <Link
+                href="/login"
+                className="rounded-lg border border-zinc-300 bg-white px-4 py-2 font-semibold text-zinc-900 hover:bg-zinc-100"
+                >
+                Login
+                </Link>
+
+                <Link
+                href="/register"
+                className="rounded-lg bg-zinc-900 px-4 py-2 font-semibold text-white hover:bg-zinc-700"
+                >
+                Register
+                </Link>
+            </div>
+        )}
         </div>
       </div>
     </nav>
